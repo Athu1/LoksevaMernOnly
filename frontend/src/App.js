@@ -98,12 +98,12 @@ function App() {
     }
   ]);
   const [filteredSchemes, setFilteredSchemes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('English');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedState, setSelectedState] = useState('');
   const [selectedIncome, setSelectedIncome] = useState('');
   const [activeTab, setActiveTab] = useState('browse');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     filterSchemes();
@@ -243,7 +243,33 @@ function App() {
               {/* Data Sync */}
               <div className="sidebar-section">
                 <h3>☁️ DATA SYNC</h3>
-                <button className="sync-btn">📊 Sync Live Schemes</button>
+                  <button
+                    className="sync-btn"
+                    disabled={isLoading}
+                    onClick={async () => {
+                      try {
+                        setIsLoading(true);
+                        const res = await fetch("http://localhost:5000/api/firecrawl/sync");
+                        const data = await res.json();
+                        console.log("Fetched schemes:", data);
+
+                        // Update schemes with fetched data
+                        if (data && data.success && data.schemes) {
+                          setSchemes(data.schemes);
+                          alert(`Schemes synced successfully! ${data.schemes.length} schemes loaded.`);
+                        } else {
+                          alert("Schemes synced successfully!");
+                        }
+                      } catch (error) {
+                        console.error("Sync failed:", error);
+                        alert("Sync failed: " + error.message);
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                  >
+                    {isLoading ? "🔄 Syncing..." : "📊 Sync Live Schemes"}
+                  </button>
               </div>
             </aside>
 
